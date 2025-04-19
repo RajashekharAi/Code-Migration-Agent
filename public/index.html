@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Code Migration Assistant</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    header {
+      background-color: #4f46e5;
+      color: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .logo svg {
+      margin-right: 0.5rem;
+    }
+    .card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #1f2937;
+    }
+    p {
+      margin-bottom: 1rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .feature-item {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+    }
+    .feature-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background-color: #eef2ff;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+      color: #4f46e5;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #4338ca;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+    .status-circle {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    .status-success {
+      background-color: #22c55e;
+    }
+    .status-error {
+      background-color: #ef4444;
+    }
+    #api-status {
+      margin-bottom: 1rem;
+    }
+    code {
+      display: block;
+      background-color: #f8f8f8;
+      border-radius: 6px;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: monospace;
+      margin: 1rem 0;
+    }
+    .code-migration-form {
+      margin-top: 2rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: inherit;
+    }
+    textarea {
+      min-height: 200px;
+      font-family: monospace;
+    }
+    .panels {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .panel {
+      flex: 1;
+      min-width: 300px;
+    }
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 1rem;
+    }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: #4f46e5;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    #error-message,
+    #single-error-message {
+      color: #ef4444;
+      display: none;
+      margin-top: 1rem;
+    }
+    
+    /* Project Migration specific styles */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .form-group input[type="text"],
+    .form-group select {
+      width: 100%;
+      padding: 0.625rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 1rem;
+    }
+    .form-group textarea {
+      width: 100%;
+      min-height: 200px;
+      padding: 0.625rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 0.9rem;
+      font-family: monospace;
+    }
+    .help-text {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .stat-item {
+      background-color: #f9fafb;
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #4f46e5;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    .file-item {
+      background-color: #f9fafb;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .file-item.success {
+      border-left: 4px solid #22c55e;
+    }
+    .file-item.skipped {
+      border-left: 4px solid #f59e0b;
+    }
+    .file-item.failed {
+      border-left: 4px solid #ef4444;
+    }
+    .migration-summary {
+      background-color: #f3f4f6;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    #project-analysis {
+      white-space: pre-line;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 18 22 12 16 6"></polyline>
+          <polyline points="8 6 2 12 8 18"></polyline>
+        </svg>
+        Intelligent Code Migration Assistant
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <h1>Welcome to the Code Migration Assistant</h1>
+      <p>This tool helps developers translate code between different programming languages while preserving business logic.</p>
+      
+      <div id="api-status">Checking API status...</div>
+      
+      <button class="btn" onclick="checkApiStatus()">Check API Connection</button>
+    </div>
+
+    <div class="card">
+      <h2>Migrate Your Project</h2>
+      <p>Upload your entire project folder, select the languages, and migrate your code while preserving business logic.</p>
+      
+      <div class="project-migration-form">
+        <div class="form-group">
+          <label for="source-language">Source Language</label>
+          <select id="source-language">
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Python">Python</option>
+            <option value="Java">Java</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="source-version">Source Version (Optional)</label>
+          <input type="text" id="source-version" placeholder="e.g., ES6, 3.9, 17, etc.">
+        </div>
+        
+        <div class="form-group">
+          <label for="target-language">Target Language</label>
+          <select id="target-language">
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Python" selected>Python</option>
+            <option value="Java">Java</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="target-version">Target Version (Optional)</label>
+          <input type="text" id="target-version" placeholder="e.g., ES2022, 3.11, 21, etc.">
+        </div>
+        
+        <div class="form-group">
+          <label for="project-folder">Upload Project Folder</label>
+          <input type="file" id="project-folder" webkitdirectory directory multiple />
+          <p class="help-text">Select a folder containing all your project files.</p>
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="preserve-structure" checked>
+            Preserve Project Structure
+          </label>
+        </div>
+        
+        <button id="migrate-btn" class="btn" onclick="migrateProject()">Migrate Project</button>
+        
+        <div id="loading">
+          <div class="spinner"></div>
+          <p>Migrating project... This may take several minutes depending on the project size.</p>
+        </div>
+        
+        <div id="error-message"></div>
+      </div>
+      
+      <div id="results" style="display: none; margin-top: 2rem;">
+        <h3>Migration Results</h3>
+        
+        <div class="migration-summary" id="migration-summary">
+          <h4>Project Migration Summary</h4>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="total-files">0</div>
+              <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="migrated-files">0</div>
+              <div class="stat-label">Migrated</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="skipped-files">0</div>
+              <div class="stat-label">Skipped</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="failed-files">0</div>
+              <div class="stat-label">Failed</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="panels">
+          <div class="panel">
+            <h4>Project Analysis</h4>
+            <div id="project-analysis"></div>
+          </div>
+          
+          <div class="panel">
+            <h4>Download Results</h4>
+            <button id="download-btn" class="btn" onclick="downloadResults()">Download Migrated Project</button>
+            <p class="help-text">Download the complete migrated project as a ZIP file.</p>
+          </div>
+        </div>
+        
+        <div class="file-results">
+          <h4>File Details</h4>
+          <div id="file-list"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Single File Migration</h2>
+      <p>Migrate a single file between programming languages.</p>
+      
+      <div class="code-migration-form">
+        <div class="form-group">
+          <label for="single-source-language">Source Language</label>
+          <select id="single-source-language">
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Python">Python</option>
+            <option value="Java">Java</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="single-target-language">Target Language</label>
+          <select id="single-target-language">
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Python" selected>Python</option>
+            <option value="Java">Java</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Swift">Swift</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="source-code">Source Code</label>
+          <textarea id="source-code" placeholder="Paste your source code here...">function factorial(n) {
+  if (n === 0 || n === 1) {
+    return 1;
+  } else {
+    return n * factorial(n-1);
+  }
+}
+
+function fibonacci(n) {
+  if (n <= 0) {
+    return 0;
+  } else if (n === 1) {
+    return 1;
+  } else {
+    return fibonacci(n-1) + fibonacci(n-2);
+  }
+}
+
+// Calculate factorial of 5
+const result = factorial(5);
+console.log(`Factorial of 5 is ${result}`);
+
+// Calculate first 10 Fibonacci numbers
+console.log("First 10 Fibonacci numbers:");
+for (let i = 0; i < 10; i++) {
+  console.log(fibonacci(i));
+}</textarea>
+        </div>
+        
+        <button id="migrate-single-btn" class="btn" onclick="migrateCode()">Migrate Code</button>
+        
+        <div id="single-loading">
+          <div class="spinner"></div>
+          <p>Migrating code... This may take a moment.</p>
+        </div>
+        
+        <div id="single-error-message"></div>
+      </div>
+      
+      <div id="single-results" style="display: none; margin-top: 2rem;">
+        <h3>Migration Results</h3>
+        
+        <div class="panels">
+          <div class="panel">
+            <h4>Migrated Code</h4>
+            <pre id="migrated-code" style="background-color: #f8f8f8; padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: monospace;"></pre>
+          </div>
+          
+          <div class="panel">
+            <h4>Key Changes</h4>
+            <ul id="key-changes"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </div>
+        <h3>Language Migration</h3>
+        <p>Translate code between different programming languages with advanced AI assistance.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2Z"></path>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <h3>Performance Analysis</h3>
+        <p>Get insights on performance implications of code migrations and recommendations for optimization.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <path d="M12 18v-6"></path>
+            <path d="M8 18v-1"></path>
+            <path d="M16 18v-3"></path>
+          </svg>
+        </div>
+        <h3>Test Generation</h3>
+        <p>Automatically generate unit tests for migrated code to ensure business logic preservation.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkApiStatus() {
+      const statusElement = document.getElementById('api-status');
+      statusElement.textContent = 'Checking API connection...';
+      
+      fetch('/api/test')
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          const status = `
+            <div class="status-indicator">
+              <div class="status-circle status-success"></div>
+              API Status: Connected
+            </div>
+            <div>OpenAI API: ${data.openaiConfigured ? 'Configured ✓' : 'Not Configured ✗'}</div>
+          `;
+          statusElement.innerHTML = status;
+        })
+        .catch(error => {
+          console.error('Error checking API status:', error);
+          const status = `
+            <div class="status-indicator">
+              <div class="status-circle status-error"></div>
+              API Status: Disconnected (${error.message})
+            </div>
+          `;
+          statusElement.innerHTML = status;
+        });
+    }
+    
+    // Global variable to store migrated project data for download
+    let migratedProjectData = null;
+    
+    // Function to migrate an entire project folder
+    function migrateProject() {
+      const sourceLanguage = document.getElementById('source-language').value;
+      const targetLanguage = document.getElementById('target-language').value;
+      const sourceVersion = document.getElementById('source-version').value;
+      const targetVersion = document.getElementById('target-version').value;
+      const preserveStructure = document.getElementById('preserve-structure').checked;
+      const fileInput = document.getElementById('project-folder');
+      
+      if (!sourceLanguage || !targetLanguage || fileInput.files.length === 0) {
+        showProjectError('Please select source and target languages and upload a project folder');
+        return;
+      }
+      
+      const files = fileInput.files;
+      const projectFiles = [];
+      let processedFiles = 0;
+      
+      // Show loading indicator
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error-message').style.display = 'none';
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('migrate-btn').disabled = true;
+      
+      // Process each file in the folder
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          const content = e.target.result;
+          
+          // Get the relative path within the project
+          let filePath = file.webkitRelativePath || file.name;
+          
+          projectFiles.push({
+            fileName: file.name,
+            filePath: filePath,
+            content: content
+          });
+          
+          processedFiles++;
+          
+          // When all files are processed, send to the server
+          if (processedFiles === files.length) {
+            // Call the API with all files
+            fetch('/api/migrate-project', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                projectFiles,
+                sourceLanguage,
+                targetLanguage,
+                sourceVersion: sourceVersion || undefined,
+                targetVersion: targetVersion || undefined,
+                preserveStructure
+              }),
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+              }
+              return response.json();
+            })
+            .then(data => {
+              // Hide loading indicator
+              document.getElementById('loading').style.display = 'none';
+              document.getElementById('migrate-btn').disabled = false;
+              
+              // Store the migrated project data for download
+              migratedProjectData = data;
+              
+              // Show results
+              document.getElementById('results').style.display = 'block';
+              
+              // Update migration stats
+              if (data.projectAnalysis && data.projectAnalysis.migrationStats) {
+                const stats = data.projectAnalysis.migrationStats;
+                document.getElementById('total-files').textContent = stats.totalFiles;
+                document.getElementById('migrated-files').textContent = stats.migratedFiles;
+                document.getElementById('skipped-files').textContent = stats.skippedFiles;
+                document.getElementById('failed-files').textContent = stats.failedFiles;
+              }
+              
+              // Display project analysis
+              displayProjectAnalysis(data.projectAnalysis);
+              
+              // Display file list
+              displayFileList(data.results);
+            })
+            .catch(error => {
+              console.error('Error migrating project:', error);
+              document.getElementById('loading').style.display = 'none';
+              document.getElementById('migrate-btn').disabled = false;
+              showProjectError('Failed to migrate project: ' + error.message);
+            });
+          }
+        };
+        
+        reader.onerror = function() {
+          processedFiles++;
+          console.error(`Error reading file: ${file.name}`);
+          
+          if (processedFiles === files.length && projectFiles.length > 0) {
+            // Continue with the files we were able to read
+            // ...
+          }
+        };
+        
+        // Read the file content
+        reader.readAsText(file);
+      }
+    }
+    
+    function displayProjectAnalysis(analysis) {
+      const container = document.getElementById('project-analysis');
+      
+      if (!analysis) {
+        container.textContent = "No analysis available";
+        return;
+      }
+      
+      let content = "";
+      
+      if (analysis.projectOverview) {
+        content += `<strong>Project Overview:</strong>\n${analysis.projectOverview}\n\n`;
+      }
+      
+      if (analysis.migrationComplexity) {
+        content += `<strong>Migration Complexity:</strong>\n${analysis.migrationComplexity}\n\n`;
+      }
+      
+      if (analysis.keyCallenges) {
+        content += `<strong>Key Challenges:</strong>\n${analysis.keyCallenges}\n\n`;
+      }
+      
+      if (analysis.recommendedChanges) {
+        content += `<strong>Recommended Changes:</strong>\n${analysis.recommendedChanges}\n\n`;
+      }
+      
+      if (analysis.dependencies) {
+        content += `<strong>Dependencies:</strong>\n${analysis.dependencies}\n\n`;
+      }
+      
+      if (analysis.testingStrategy) {
+        content += `<strong>Testing Strategy:</strong>\n${analysis.testingStrategy}\n\n`;
+      }
+      
+      container.innerHTML = content;
+    }
+    
+    function displayFileList(files) {
+      const container = document.getElementById('file-list');
+      container.innerHTML = '';
+      
+      if (!files || files.length === 0) {
+        container.innerHTML = "<p>No files processed</p>";
+        return;
+      }
+      
+      files.forEach(file => {
+        const fileItem = document.createElement('div');
+        
+        if (file.migrated) {
+          fileItem.className = 'file-item success';
+        } else if (file.reason) {
+          fileItem.className = 'file-item skipped';
+        } else {
+          fileItem.className = 'file-item failed';
+        }
+        
+        const fileInfo = document.createElement('div');
+        const fileName = document.createElement('div');
+        fileName.className = 'file-name';
+        fileName.textContent = file.fileName;
+        
+        const filePath = document.createElement('div');
+        filePath.className = 'file-path';
+        filePath.textContent = file.filePath;
+        
+        fileInfo.appendChild(fileName);
+        fileInfo.appendChild(filePath);
+        
+        const status = document.createElement('div');
+        status.className = 'file-status';
+        
+        if (file.migrated) {
+          status.textContent = 'Migrated';
+          status.className += ' success';
+        } else if (file.reason) {
+          status.textContent = 'Skipped: ' + file.reason;
+          status.className += ' skipped';
+        } else {
+          status.textContent = 'Failed: ' + (file.error || 'Unknown error');
+          status.className += ' failed';
+        }
+        
+        fileItem.appendChild(fileInfo);
+        fileItem.appendChild(status);
+        container.appendChild(fileItem);
+      });
+    }
+    
+    function downloadResults() {
+      if (!migratedProjectData || !migratedProjectData.results) {
+        alert("No migration results available to download");
+        return;
+      }
+      
+      // Create a ZIP file with JSZip (would need to include JSZip library)
+      alert("Download functionality would create a ZIP file with all migrated files. This feature requires additional libraries.");
+      
+      // In a full implementation, this would:
+      // 1. Create a new JSZip instance
+      // 2. Add each migrated file to the ZIP at its correct path
+      // 3. Generate the ZIP file
+      // 4. Trigger a download with the proper name
+    }
+    
+    function migrateCode() {
+      const sourceCode = document.getElementById('source-code').value;
+      const sourceLanguage = document.getElementById('single-source-language').value;
+      const targetLanguage = document.getElementById('single-target-language').value;
+      
+      if (!sourceCode || !sourceLanguage || !targetLanguage) {
+        showSingleError('Please fill in all fields');
+        return;
+      }
+      
+      // Show loading indicator
+      document.getElementById('single-loading').style.display = 'block';
+      document.getElementById('single-error-message').style.display = 'none';
+      document.getElementById('single-results').style.display = 'none';
+      document.getElementById('migrate-single-btn').disabled = true;
+      
+      // Call the API
+      fetch('/api/migrate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sourceCode,
+          sourceLanguage,
+          targetLanguage
+        }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Hide loading indicator
+          document.getElementById('single-loading').style.display = 'none';
+          document.getElementById('migrate-single-btn').disabled = false;
+          
+          // Show results
+          document.getElementById('single-results').style.display = 'block';
+          
+          // Set migrated code
+          document.getElementById('migrated-code').textContent = data.migratedCode;
+          
+          // Set key changes
+          const keyChangesContainer = document.getElementById('key-changes');
+          keyChangesContainer.innerHTML = '';
+          
+          if (data.analysis && data.analysis.keyChanges && data.analysis.keyChanges.length > 0) {
+            data.analysis.keyChanges.forEach(change => {
+              const li = document.createElement('li');
+              li.textContent = change.description;
+              keyChangesContainer.appendChild(li);
+            });
+          } else {
+            const li = document.createElement('li');
+            li.textContent = 'No significant changes detected';
+            keyChangesContainer.appendChild(li);
+          }
+        })
+        .catch(error => {
+          console.error('Error migrating code:', error);
+          document.getElementById('single-loading').style.display = 'none';
+          document.getElementById('migrate-single-btn').disabled = false;
+          showSingleError('Failed to migrate code: ' + error.message);
+        });
+    }
+    
+    function showProjectError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+    
+    function showSingleError(message) {
+      const errorElement = document.getElementById('single-error-message');
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+    }
+    
+    // Check API status on page load
+    window.addEventListener('DOMContentLoaded', checkApiStatus);
+  </script>
+</body>
+</html>
